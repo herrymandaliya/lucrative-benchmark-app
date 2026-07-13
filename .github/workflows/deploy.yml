@@ -1,0 +1,35 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    name: Deploy to Shopify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: lucrative-benchmark-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: lucrative-benchmark-app
+
+      - name: Build App
+        run: npm run build
+        working-directory: lucrative-benchmark-app
+
+      - name: Deploy Extensions and Configuration
+        run: npm run deploy -- --non-interactive
+        working-directory: lucrative-benchmark-app
+        env:
+          SHOPIFY_CLI_PARTNERS_TOKEN: ${{ secrets.SHOPIFY_CLI_PARTNERS_TOKEN }}
